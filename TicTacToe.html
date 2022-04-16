@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicTacToe</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Color Matching</h2>
+        <div class="current-playing-player">
+            <h3 style="margin: 10px 0;">Current Playing</h3>
+            <table>
+                <tr>
+                    <th id="current-player-name">PLAYER</th>
+                    <th id="current-player-color"></th>
+                </tr>
+            </table>
+        </div>
+
+        <div class="win-window">
+            <h2 class="win-p-name">PLAYER WON</h2>
+        </div>
+
+        <button>Reset</button>
+        <table class="player-details">
+            <tr>
+                <th class="th you">You</th>
+                <th class="th opponent">Opponet</th>
+            </tr>
+            <tr>
+                <td class="player-color-1"></td>
+                <td class="player-color-2"></td>
+            </tr>
+        </table>
+        <div class="table-container"></div>
+        
+    </div>
+</body>
+<!-- <table>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+</table> -->
+</html>
+
+<style>
+    :root {
+        /* --current-color: rgb(25, 38, 223); */
+        --current-color: rgb(25, 223, 48);
+    }
+    button {
+        margin: 10px;
+        padding: .5rem 1rem;
+    }
+    th {
+        width: 70px;
+    }
+    .you {
+        color: rgb(0, 201, 0);
+    }
+    .current-playing-player {
+        width: 140px;
+        border: 1px solid red;
+        padding: 5px 10px;
+    }
+    .current-playing-player table th {
+        width: 70px;
+        height: 35px;
+    }
+    #current-player-color {
+        background-color: rgba(0, 0, 0, 0.289);
+    }
+    .win-window {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        height: 10vh;
+    }
+    .win-p-name {
+        color: rgb(0, 206, 0);
+    }
+    .opponent {
+        color: rgb(250, 39, 16);
+    }
+    .player-details {
+        display: flex;
+        flex-direction: column;
+    }
+    .container {
+        margin: 30px;
+    }
+    .grid-table {
+        width: 250px;
+        height: 250px;
+        border: 4px solid red;
+    }
+    .player-details {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        border: 2px solid grey;
+        width: 150px;
+        display: flex;
+        align-items: center;
+    }
+    td {
+        border: 1px solid green;
+    }
+    .player-color-1 {
+        width: 30px;
+        height: 30px;
+        background-color: green;
+        margin: 20px 30px;
+    }
+    .player-color-2 {
+        width: 30px;
+        height: 30px;
+        background-color: blue;
+        margin: 20px 30px;
+    }
+
+    .toggled {
+        background-color: var(--current-color);
+    }
+</style>
+
+<script>
+    const ResetBtn = document.querySelector('button');
+    const container = document.querySelector('.table-container');
+    const winWindow = document.querySelector('.win-window');
+    const winPlayerName = document.querySelector('.win-p-name');
+    const playerDetails = document.querySelector('.player-details');
+    
+    const playerColor1 = document.querySelector('.player-color-1');
+    const playerColor2 = document.querySelector('.player-color-2');
+
+    const currentPlayerColor = document.querySelector('#current-player-color');
+    const currentPlayerName = document.querySelector('#current-player-name');
+    
+    const color1 = "rgb(25, 38, 223)";
+    const color2 = "rgb(25, 223, 48)";
+    
+    playerColor1.style.backgroundColor = color1;
+    playerColor2.style.backgroundColor = color2;
+    
+    let myTurn = false;
+    let map = {};
+    let table;
+    let canClick = true;
+    let stepsCount = 0;
+    
+    GenerateTable();
+
+    ShowCurrentPlayerDetails(!myTurn ? 'P1' : 'P2');
+
+    ResetBtn.onclick = (e) => {
+        ResetGame();
+    };
+
+    function ResetGame() {
+        map = {};
+        ClearTable();
+        GenerateTable();
+        canClick = true;
+        winWindow.style.display = 'none';
+        ResetBtn.disabled = false;
+    }
+
+    function ClearTable() {
+        container.removeChild(table);
+    }
+
+    function GenerateTable() {
+        table = document.createElement('table');
+        table.classList.add('grid-table');
+        for (let i = 0; i < 3; i++) {
+            const tr = document.createElement('tr');
+            for (let j = 0; j < 3; j++) {
+                const td = document.createElement('td');
+                td.setAttribute('row', i);
+                td.setAttribute('column', j);
+                tr.appendChild(td);
+                td.onmousedown = OnClick;
+                map[`${i} ${j}`] = {
+                    ele: td,
+                    val: false,
+                    filled: false,
+                    filledBy: ''
+                };
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+    }
+
+    function SetColor(color) {
+        document.documentElement.style.setProperty('--current-color', color);
+    }
+
+    function ShowCurrentPlayerDetails(player) {
+        currentPlayerName.innerText = player;
+        currentPlayerColor.style.backgroundColor = player === 'P1' ? color1 : color2;
+    }
+
+    function OnClick(e) {
+        if (!canClick) {
+            return;
+        }
+        stepsCount++;
+
+        const row = e.target.getAttribute('row');
+        const column = e.target.getAttribute('column');
+        
+        const val = map[`${row} ${column}`].val;
+        
+        if (map[`${row} ${column}`].filled) {
+            return;
+        }
+        myTurn = !myTurn;
+        const currentPlayer = myTurn ? 'P1' : 'P2';
+        ShowCurrentPlayerDetails(!myTurn ? 'P1' : 'P2');
+
+        map[`${row} ${column}`].val = !val;
+        map[`${row} ${column}`].filledBy = currentPlayer;
+        map[`${row} ${column}`].filled = true;
+        map[`${row} ${column}`].ele.style.backgroundColor = myTurn ? color1 : color2;
+        // console.log(map[`${row} ${column}`]);
+        const isPlayerWon = CalculateWinning(currentPlayer);
+
+        if (isPlayerWon) {
+            ShowWinner(currentPlayer);
+            stepsCount = 0;
+        }
+        if (stepsCount > 8) {
+            stepsCount = 0;
+            alert("Reset the game. Board is completely filled.");
+        }
+    }
+    
+    function ShowWinner(player) {
+        winPlayerName.style.color = player === "P1" ? color1 : color2;
+        winPlayerName.innerText = player + " Won";
+        winWindow.style.display = 'flex';
+        canClick = false;
+        setTimeout(() => {
+            ResetBtn.disabled = true;
+            ResetGame();
+        }, 1500);
+    }
+
+    const possibleWins = [
+            [
+                {x: 0, y: 0},
+                {x: 0, y: 1},
+                {x: 0, y: 2},
+            ],
+            [
+                {x: 1, y: 0},
+                {x: 1, y: 1},
+                {x: 1, y: 2},
+            ],
+            [
+                {x: 2, y: 0},
+                {x: 2, y: 1},
+                {x: 2, y: 2},
+            ],
+            [
+                {x: 0, y: 0},
+                {x: 1, y: 0},
+                {x: 2, y: 0},
+            ],
+            [
+                {x: 0, y: 1},
+                {x: 1, y: 1},
+                {x: 2, y: 1},
+            ],
+            [
+                {x: 0, y: 2},
+                {x: 1, y: 2},
+                {x: 2, y: 2},
+            ],
+            [
+                {x: 0, y: 0},
+                {x: 1, y: 1},
+                {x: 2, y: 2},
+            ],
+            [
+                {x: 2, y: 0},
+                {x: 1, y: 1},
+                {x: 0, y: 2},
+            ],
+        ];
+    
+    function CalculateWinning(player) {
+        let won = 0;
+        for (let i = 0; i < possibleWins.length; i++) {
+            const arr = possibleWins[i];
+            let sum = 0;
+            
+            for (let idx = 0; idx < arr.length; idx++) {
+                const x = arr[idx].x;
+                const y = arr[idx].y;
+                if (map[`${x} ${y}`]?.filledBy === player) {
+                    sum ++;
+                    // console.log(sum);
+                }
+            }
+            if (sum >= 3) {
+                console.log(won);
+                return true;
+            }
+        }
+        return false;
+    }
+</script>
