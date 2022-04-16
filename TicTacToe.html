@@ -220,8 +220,7 @@
         if (!canClick) {
             return;
         }
-        stepsCount++;
-
+        
         const row = e.target.getAttribute('row');
         const column = e.target.getAttribute('column');
         
@@ -233,11 +232,12 @@
         myTurn = !myTurn;
         const currentPlayer = myTurn ? 'P1' : 'P2';
         ShowCurrentPlayerDetails(!myTurn ? 'P1' : 'P2');
-
+        
         map[`${row} ${column}`].val = !val;
         map[`${row} ${column}`].filledBy = currentPlayer;
         map[`${row} ${column}`].filled = true;
         map[`${row} ${column}`].ele.style.backgroundColor = myTurn ? color1 : color2;
+        stepsCount++;
         // console.log(map[`${row} ${column}`]);
         const isPlayerWon = CalculateWinning(currentPlayer);
 
